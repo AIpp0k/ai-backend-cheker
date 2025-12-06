@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI API Tester</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #111;
+  color: #fff;
+  padding: 20px;
+}
+.container {
+  max-width: 600px;
+  margin: auto;
+}
+input, textarea, button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+}
+input, textarea {
+  background: #222;
+  color: #fff;
+}
+button {
+  background: #00b4ff;
+  color: #000;
+  font-weight: bold;
+}
+pre {
+  background: #000;
+  padding: 15px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+  <h2>AI Backend Tester</h2>
+  <p>Check if your AI backend is working & returning response.</p>
+
+  <label>Backend URL:</label>
+  <input id="url" value="https://askpkai.pradeep6292p.workers.dev">
+
+  <label>Your Question:</label>
+  <textarea id="question" rows="3" placeholder="Type your question..."></textarea>
+
+  <button onclick="testApi()">Test API</button>
+
+  <h3>Response:</h3>
+  <pre id="output">Waiting...</pre>
+
+  <h3>Status:</h3>
+  <pre id="status">No request yet</pre>
+</div>
+
+<script>
+async function testApi() {
+  const url = document.getElementById("url").value;
+  const question = document.getElementById("question").value;
+
+  document.getElementById("output").textContent = "Requesting...";
+  document.getElementById("status").textContent = "Connecting...";
+
+  const start = performance.now();
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        messages: [{ role: "user", content: question }]
+      })
+    });
+
+    const end = performance.now();
+
+    document.getElementById("status").textContent =
+      `Status: ${res.status} | Time: ${Math.round(end - start)} ms`;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let finalText = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      finalText += decoder.decode(value);
+    }
+
+    document.getElementById("output").textContent = finalText;
+  }
+
+  catch (err) {
+    document.getElementById("output").textContent = "Error: " + err.message;
+    document.getElementById("status").textContent = "Request Failed";
+  }
+}
+</script>
+
+</body>
+</html>
